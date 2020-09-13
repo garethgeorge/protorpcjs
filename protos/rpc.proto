@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+message RPCMessage {
+  oneof msg {
+    Request request = 2;
+    Response response = 3;
+  }
+}
+
+message Request {
+  string rpc_name = 1;
+  bytes request = 2;
+  uint64 tracking_id = 3;
+}
+
+message Response {
+  enum Status {
+    OK = 0;
+    EMPTY = 1;
+    ERROR = 100;
+  }
+
+
+  Status status = 1;
+  bytes response = 2;
+  string error_message = 3;
+  uint64 tracking_id = 4;
+}

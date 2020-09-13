@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message TestRequest {
+  string reqText = 1;
+}
+
+message TestResponse {
+  string respText = 1;
+}
