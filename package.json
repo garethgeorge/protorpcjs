@@ -14,8 +14,8 @@
     "protobufjs": "^6.10.1",
     "source-map-support": "^0.5.19"
   },
+  "type": "module",
   "devDependencies": {
-    "@types/event-emitter": "^0.3.3",
     "@types/expect": "^24.3.0",
     "@types/google-protobuf": "^3.7.3",
     "@types/mocha": "^8.0.3",
