@@ -6,7 +6,7 @@ exports.protocjs = function protoc_js() {
     .pipe(protobuf.pbjs({
         target: "static-module",
         wrap: "commonjs",
-        "force-number": true
+        "force-number": true,
     }))
     .pipe(gulp.dest("./protos"));
 }

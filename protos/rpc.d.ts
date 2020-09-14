@@ -24,8 +24,8 @@ export class RPCMessage implements IRPCMessage {
     /** RPCMessage response. */
     public response?: (IResponse|null);
 
-    /** RPCMessage msg. */
-    public msg?: ("request"|"response");
+    /** RPCMessage msgType. */
+    public msgType?: ("request"|"response");
 
     /**
      * Creates a new RPCMessage instance using the specified properties.
@@ -104,8 +104,8 @@ export interface IRequest {
     /** Request rpcName */
     rpcName?: (string|null);
 
-    /** Request request */
-    request?: (Uint8Array|null);
+    /** Request requestBuffer */
+    requestBuffer?: (Uint8Array|null);
 
     /** Request trackingId */
     trackingId?: (number|null);
@@ -123,8 +123,8 @@ export class Request implements IRequest {
     /** Request rpcName. */
     public rpcName: string;
 
-    /** Request request. */
-    public request: Uint8Array;
+    /** Request requestBuffer. */
+    public requestBuffer: Uint8Array;
 
     /** Request trackingId. */
     public trackingId: number;
@@ -203,17 +203,17 @@ export class Request implements IRequest {
 /** Properties of a Response. */
 export interface IResponse {
 
-    /** Response status */
-    status?: (Response.Status|null);
+    /** Response trackingId */
+    trackingId?: (number|null);
 
-    /** Response response */
-    response?: (Uint8Array|null);
+    /** Response responseBuffer */
+    responseBuffer?: (Uint8Array|null);
 
     /** Response errorMessage */
     errorMessage?: (string|null);
 
-    /** Response trackingId */
-    trackingId?: (number|null);
+    /** Response empty */
+    empty?: (Response.IEmpty|null);
 }
 
 /** Represents a Response. */
@@ -225,17 +225,20 @@ export class Response implements IResponse {
      */
     constructor(properties?: IResponse);
 
-    /** Response status. */
-    public status: Response.Status;
+    /** Response trackingId. */
+    public trackingId: number;
 
-    /** Response response. */
-    public response: Uint8Array;
+    /** Response responseBuffer. */
+    public responseBuffer: Uint8Array;
 
     /** Response errorMessage. */
     public errorMessage: string;
 
-    /** Response trackingId. */
-    public trackingId: number;
+    /** Response empty. */
+    public empty?: (Response.IEmpty|null);
+
+    /** Response returned. */
+    public returned?: ("responseBuffer"|"errorMessage"|"empty");
 
     /**
      * Creates a new Response instance using the specified properties.
@@ -310,10 +313,87 @@ export class Response implements IResponse {
 
 export namespace Response {
 
-    /** Status enum. */
-    enum Status {
-        OK = 0,
-        EMPTY = 1,
-        ERROR = 100
+    /** Properties of an Empty. */
+    interface IEmpty {
+    }
+
+    /** Represents an Empty. */
+    class Empty implements IEmpty {
+
+        /**
+         * Constructs a new Empty.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: Response.IEmpty);
+
+        /**
+         * Creates a new Empty instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns Empty instance
+         */
+        public static create(properties?: Response.IEmpty): Response.Empty;
+
+        /**
+         * Encodes the specified Empty message. Does not implicitly {@link Response.Empty.verify|verify} messages.
+         * @param message Empty message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: Response.IEmpty, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Encodes the specified Empty message, length delimited. Does not implicitly {@link Response.Empty.verify|verify} messages.
+         * @param message Empty message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(message: Response.IEmpty, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes an Empty message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Empty
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): Response.Empty;
+
+        /**
+         * Decodes an Empty message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns Empty
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): Response.Empty;
+
+        /**
+         * Verifies an Empty message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): (string|null);
+
+        /**
+         * Creates an Empty message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns Empty
+         */
+        public static fromObject(object: { [k: string]: any }): Response.Empty;
+
+        /**
+         * Creates a plain object from an Empty message. Also converts values to other types if specified.
+         * @param message Empty
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(message: Response.Empty, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+        /**
+         * Converts this Empty to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
     }
 }

@@ -1,4 +1,4 @@
-import { RPCMessageTransport } from "../../src/index";
+import { RPCMessageTransport } from "../../src/transport";
 import * as EventEmitter from "event-emitter";
 
 export default class MockTransport implements RPCMessageTransport {
@@ -26,7 +26,7 @@ export default class MockTransport implements RPCMessageTransport {
   }
 
   onClose(handler: () => void) {
-    this.eventEmitter.on("data", handler);
+    this.eventEmitter.on("close", handler);
   }
 
   onError(handler: (error: Error) => void) {

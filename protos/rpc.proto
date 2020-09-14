@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 message RPCMessage {
-  oneof msg {
+  oneof msg_type {
     Request request = 2;
     Response response = 3;
   }
@@ -9,20 +9,19 @@ message RPCMessage {
 
 message Request {
   string rpc_name = 1;
-  bytes request = 2;
+  bytes request_buffer = 2;
   uint64 tracking_id = 3;
 }
 
 message Response {
-  enum Status {
-    OK = 0;
-    EMPTY = 1;
-    ERROR = 100;
+  message Empty {
+  };
+
+  uint64 tracking_id = 1;
+
+  oneof returned {
+    bytes response_buffer = 2;
+    string error_message = 3;
+    Empty empty = 4;
   }
-
-
-  Status status = 1;
-  bytes response = 2;
-  string error_message = 3;
-  uint64 tracking_id = 4;
 }

@@ -1,157 +1,191 @@
-import { Message, Type, Field, OneOf } from "protobufjs/light"; // respectively "./node_modules/protobufjs/light.js"
+import { Method, Writer } from "protobufjs/light";
+import { transform } from "typescript";
+import { RPCMessageTransport } from "./transport";
 import * as rpc_pb from "../protos/rpc";
+import * as test_pb from "../protos/test";
 
+// TODO: replace the error messages with emitted error events
 
-export interface RPCMessageTransport {
-  onData(callback: (data: Uint8Array) => void): void;
-  onClose(callback: () => void): void;
-  onError(callback: (error: Error) => void): void;
-
-  send(data: Uint8Array): void;
-  close(): void;
-}
-
-interface Callback {
-  accept: (data: any) => void;
-  reject: (data: any) => void;
-  responseDecoder: (data: Uint8Array) => Message;
-}
-
-export class RPCService {
-
+export class RPCMediator {
   private nextTrackingId: number;
-  private transport: RPCMessageTransport;
-  private callbacks: { [key: number]: Callback };
-  private handlers: { [key: number]: (data: rpc_pb.Request) => any}
+  private handlers: { [name: string]: (requestPackage: rpc_pb.Request) => any };
+  private callbacks: { [trackingId: number]: (response: rpc_pb.Response | null) => any };
 
-  constructor(transport: RPCMessageTransport) {
-    this.nextTrackingId = 0;
-    this.transport = transport;
-
-    this.callbacks = {};
+  /**
+   * constructs RPCMediator instance
+   * @param transport - the transport that messages will be sent over
+   */
+  // TODO: avoid memory leaks / deadlock potential implementing a timeout mechanism
+  public constructor(private transport: RPCMessageTransport) {
+    this.nextTrackingId = 1;
     this.handlers = {};
+    this.callbacks = {};
 
     this.transport.onClose(() => {
-      try {
-        for (const callback of Object.values(this.callbacks)) {
-          callback.reject(new Error("transport closed"));
-        }
-      } finally {
-        this.callbacks = {};
+      for (const callback of Object.values(this.callbacks)) {
+        callback(null);
       }
     });
 
     this.transport.onData((data: Uint8Array) => {
-      const rpcMessage = rpc_pb.RPCMessage.decode(data);
-      switch(rpcMessage.msg) {
-        case "request": {
-          const requestPackage = rpcMessage.request;
-          break;
-        }
-        case "response": {
-          const responsePackage = rpcMessage.response;
-          const callback = this.callbacks[responsePackage.trackingId];
-          try {
-            if (responsePackage.status === rpc_pb.Response.Status.OK) {
-              if (callback.responseDecoder) {
-                callback.accept(callback.responseDecoder(responsePackage.response));
-              } else 
-                return callback.reject(new Error("no responseDecoder provided -- response type is null"));
-            } else if (responsePackage.status === rpc_pb.Response.Status.EMPTY) {
-              callback.accept(null);
-            } else if (responsePackage.status === rpc_pb.Response.Status.ERROR) {
-              callback.reject(callback.responseDecoder(responsePackage.response));
-            } else {
-              callback.reject("unhandled status code");
-            }
-          } catch (e) {
-            callback.reject(e);
-          }
-          break;
-        }
-      }
-    });
-  }
-
-  addUnaryHandler<ReqT extends Message, RespT extends Message>(name: string, requestDecoder: (data: Uint8Array) => ReqT, handler: (arg: ReqT) => Promise<RespT>) {
-    this.handlers[name] = async (requestPackage: rpc_pb.Request) => {
       try {
-        const request = requestDecoder(requestPackage.request);
-        let response;
+        let rpcMessage: rpc_pb.RPCMessage;
         try {
-          response = await handler(request);
+          rpcMessage = rpc_pb.RPCMessage.decode(data);
         } catch (e) {
-          console.log(e);
-          this.respondWithError(requestPackage.trackingId, "exception in RPC handler");
+          console.error("failed to parse message from transport: ", e);
           return;
         }
-        const responseData = response.$type.encode(response).finish();
-        
-        this.transport.send(
-          rpc_pb.RPCMessage.encode(new rpc_pb.RPCMessage({
-            response: {
-              status: rpc_pb.Response.Status.OK,
-              response: responseData,
-              trackingId: requestPackage.trackingId,
+        switch (rpcMessage.msgType) {
+          case "request": {
+            const handler = this.handlers[rpcMessage.request.rpcName];
+            if (!handler) {
+              this.sendBackError(
+                rpcMessage.request.trackingId,
+                "no handler for " + rpcMessage.request.rpcName
+              );
+              return;
             }
-          })).finish()
-        )
+
+            handler(new rpc_pb.Request(rpcMessage.request));
+            break;
+          }
+          case "response": {
+            const callback = this.callbacks[rpcMessage.response.trackingId];
+            if (!callback) {
+              throw new Error(
+                "received response without a callback to handle it (trackingId " +
+                  rpcMessage.response.trackingId +
+                  ")"
+              );
+            }
+            delete this.callbacks[rpcMessage.response.trackingId];
+            callback(new rpc_pb.Response(rpcMessage.response));
+          }
+        }
       } catch (e) {
         console.error(e);
-        this.respondWithError(requestPackage.trackingId, "protocol error handling RPC request");
       }
-    }
+    });
   }
 
-  request<ReqT extends Message, RespT extends Message | null>(
+  public addMethod<ReqT, RespT>(
     name: string,
-    req: ReqT,
-    responseDecoder: (data: Uint8Array) => RespT
-  ): Promise<RespT> {
-    const message = new rpc_pb.Request({
-      rpcName: name,
-      request: req.$type.encode(req).finish(),
-      trackingId: ++this.nextTrackingId,
-    });
+    requestDecoder: (data: Uint8Array) => ReqT,
+    responseEncoder: (response: RespT) => Writer,
+    handler: (request: ReqT) => Promise<RespT>
+  ) {
+    this.handlers[name] = async (requestPackage: rpc_pb.Request) => {
+      let request: ReqT;
+      try {
+        request = requestDecoder(requestPackage.requestBuffer);
+      } catch (e) {
+        console.error("error parsing argument in handler: " + name, e);
+        this.sendBackError(requestPackage.trackingId, "line error parsing handler argument");
+        return;
+      }
 
-    this.transport.send(rpc_pb.Request.encode(message).finish());
-    return new Promise((accept, reject) => {
-      this.callbacks[message.trackingId] = {accept, reject, responseDecoder};
-    });
+      let resp: RespT;
+      try {
+        resp = await handler(request);
+      } catch (e) {
+        console.error("error in handler: " + name, e);
+        this.sendBackError(requestPackage.trackingId, "internal error in handler");
+        return;
+      }
+
+      try {
+        this.transport.send(
+          rpc_pb.RPCMessage.encode({
+            response: {
+              trackingId: requestPackage.trackingId,
+              responseBuffer: responseEncoder(resp).finish(),
+            },
+          }).finish()
+        );
+      } catch (e) {
+        console.error("error serializing response in handler: " + name, e);
+        this.sendBackError(requestPackage.trackingId, "error serializing response");
+      }
+    };
   }
 
-  async *requestStream<ReqT extends Message, RespT extends Message>(
-    name: string,
-    req: ReqT,
-    responseDecoder?: (data: Uint8Array) => RespT
-  ): AsyncIterator<RespT> {
-    const message = new rpc_pb.Request({
-      rpcName: name,
-      request: req.$type.encode(req).finish(),
-      trackingId: ++this.nextTrackingId,
-    });
-
-    this.transport.send(rpc_pb.Request.encode(message).finish());
-    
-    while (true) {
-      const resp = await new Promise((accept, reject) => {
-        this.callbacks[message.trackingId] = {accept, reject, responseDecoder};
-      }) as RespT;
-      if (resp === null) 
-        break;
-      yield resp;
-    }
+  /**
+   * Called to create a message to be passed to a protobufjs service construtor
+   *
+   * @returns function that takes invocation information, transports request to server, and retruns response
+   */
+  public makeRpcClientImpl() {
+    return (
+      method: Method,
+      requestData: Uint8Array,
+      callback: (error: Error, response?: Uint8Array) => void
+    ) => {
+      this.makeUnaryRequest(method.name, requestData, callback);
+    };
   }
 
-  private respondWithError(trackingId: number, error: string) {
+  public makeUnaryRequest(
+    method: string,
+    requestData: Uint8Array,
+    callback: (error: Error, response?: Uint8Array) => void
+  ) {
+    const trackingId = this.nextTrackingId++;
     this.transport.send(
-      rpc_pb.RPCMessage.encode(new rpc_pb.RPCMessage({
-        response: {
-          status: rpc_pb.Response.Status.ERROR,
-          errorMessage: error,
-          trackingId: trackingId,
+      rpc_pb.RPCMessage.encode({
+        request: {
+          rpcName: method,
+          trackingId,
+          requestBuffer: requestData,
+        },
+      }).finish()
+    );
+
+    this.callbacks[trackingId] = (response: rpc_pb.Response | null) => {
+      if (response === null) {
+        return callback(new Error("request timedout"), null);
+      }
+
+      switch (response.returned) {
+        case "empty": {
+          callback(null, null);
+          break;
         }
-      })).finish()
-    )
+        case "errorMessage": {
+          callback(new Error(response.errorMessage), null);
+          break;
+        }
+        case "responseBuffer": {
+          callback(null, response.responseBuffer);
+          break;
+        }
+      }
+    };
   }
+
+  /**
+   * Sends an error back for the request with the specified tracking id
+   * @param trackingId tracking id for the response
+   * @param message the error message
+   */
+  private sendBackError(trackingId: number, message: string) {
+    this.transport.send(
+      rpc_pb.RPCMessage.encode({
+        response: {
+          errorMessage: message,
+          trackingId: trackingId,
+        },
+      }).finish()
+    );
+  }
+}
+
+export const makeClientRpcImpl = (transport: RPCMessageTransport) => {
+  transport.onData((data) => {});
+};
+
+class RpcClient {
+  constructor(socket) {}
+
+  getRpcImpl() {}
 }

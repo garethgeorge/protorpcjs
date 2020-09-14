@@ -1,4 +1,49 @@
 import * as $protobuf from "protobufjs";
+/** Represents a TestService */
+export class TestService extends $protobuf.rpc.Service {
+
+    /**
+     * Constructs a new TestService service.
+     * @param rpcImpl RPC implementation
+     * @param [requestDelimited=false] Whether requests are length-delimited
+     * @param [responseDelimited=false] Whether responses are length-delimited
+     */
+    constructor(rpcImpl: $protobuf.RPCImpl, requestDelimited?: boolean, responseDelimited?: boolean);
+
+    /**
+     * Creates new TestService service using the specified rpc implementation.
+     * @param rpcImpl RPC implementation
+     * @param [requestDelimited=false] Whether requests are length-delimited
+     * @param [responseDelimited=false] Whether responses are length-delimited
+     * @returns RPC service. Useful where requests and/or responses are streamed.
+     */
+    public static create(rpcImpl: $protobuf.RPCImpl, requestDelimited?: boolean, responseDelimited?: boolean): TestService;
+
+    /**
+     * Calls testRpc.
+     * @param request TestRequest message or plain object
+     * @param callback Node-style callback called with the error, if any, and TestResponse
+     */
+    public testRpc(request: ITestRequest, callback: TestService.testRpcCallback): void;
+
+    /**
+     * Calls testRpc.
+     * @param request TestRequest message or plain object
+     * @returns Promise
+     */
+    public testRpc(request: ITestRequest): Promise<TestResponse>;
+}
+
+export namespace TestService {
+
+    /**
+     * Callback as used by {@link TestService#testRpc}.
+     * @param error Error, if any
+     * @param [response] TestResponse
+     */
+    type testRpcCallback = (error: (Error|null), response?: TestResponse) => void;
+}
+
 /** Properties of a TestRequest. */
 export interface ITestRequest {
 

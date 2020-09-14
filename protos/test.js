@@ -9,6 +9,74 @@ var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
+$root.TestService = (function() {
+
+    /**
+     * Constructs a new TestService service.
+     * @exports TestService
+     * @classdesc Represents a TestService
+     * @extends $protobuf.rpc.Service
+     * @constructor
+     * @param {$protobuf.RPCImpl} rpcImpl RPC implementation
+     * @param {boolean} [requestDelimited=false] Whether requests are length-delimited
+     * @param {boolean} [responseDelimited=false] Whether responses are length-delimited
+     */
+    function TestService(rpcImpl, requestDelimited, responseDelimited) {
+        $protobuf.rpc.Service.call(this, rpcImpl, requestDelimited, responseDelimited);
+    }
+
+    (TestService.prototype = Object.create($protobuf.rpc.Service.prototype)).constructor = TestService;
+
+    /**
+     * Creates new TestService service using the specified rpc implementation.
+     * @function create
+     * @memberof TestService
+     * @static
+     * @param {$protobuf.RPCImpl} rpcImpl RPC implementation
+     * @param {boolean} [requestDelimited=false] Whether requests are length-delimited
+     * @param {boolean} [responseDelimited=false] Whether responses are length-delimited
+     * @returns {TestService} RPC service. Useful where requests and/or responses are streamed.
+     */
+    TestService.create = function create(rpcImpl, requestDelimited, responseDelimited) {
+        return new this(rpcImpl, requestDelimited, responseDelimited);
+    };
+
+    /**
+     * Callback as used by {@link TestService#testRpc}.
+     * @memberof TestService
+     * @typedef testRpcCallback
+     * @type {function}
+     * @param {Error|null} error Error, if any
+     * @param {TestResponse} [response] TestResponse
+     */
+
+    /**
+     * Calls testRpc.
+     * @function testRpc
+     * @memberof TestService
+     * @instance
+     * @param {ITestRequest} request TestRequest message or plain object
+     * @param {TestService.testRpcCallback} callback Node-style callback called with the error, if any, and TestResponse
+     * @returns {undefined}
+     * @variation 1
+     */
+    Object.defineProperty(TestService.prototype.testRpc = function testRpc(request, callback) {
+        return this.rpcCall(testRpc, $root.TestRequest, $root.TestResponse, request, callback);
+    }, "name", { value: "testRpc" });
+
+    /**
+     * Calls testRpc.
+     * @function testRpc
+     * @memberof TestService
+     * @instance
+     * @param {ITestRequest} request TestRequest message or plain object
+     * @returns {Promise<TestResponse>} Promise
+     * @variation 2
+     */
+
+    return TestService;
+})();
+
 $root.TestRequest = (function() {
 
     /**
