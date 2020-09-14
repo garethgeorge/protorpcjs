@@ -2,11 +2,9 @@ import { Method, Writer } from "protobufjs/light";
 import { transform } from "typescript";
 import { RPCMessageTransport } from "./transport";
 import * as rpc_pb from "../protos/rpc";
-import * as test_pb from "../protos/test";
+import * as EventEmitter from "eventemitter3";
 
-// TODO: replace the error messages with emitted error events
-
-export class RPCMediator {
+export class RPCMediator extends EventEmitter {
   private nextTrackingId: number;
   private handlers: { [name: string]: (requestPackage: rpc_pb.Request) => any };
   private callbacks: { [trackingId: number]: (response: rpc_pb.Response | null) => any };
@@ -17,6 +15,8 @@ export class RPCMediator {
    */
   // TODO: avoid memory leaks / deadlock potential implementing a timeout mechanism
   public constructor(private transport: RPCMessageTransport) {
+    super();
+
     this.nextTrackingId = 1;
     this.handlers = {};
     this.callbacks = {};
@@ -25,6 +25,7 @@ export class RPCMediator {
       for (const callback of Object.values(this.callbacks)) {
         callback(null);
       }
+      this.emit("close");
     });
 
     this.transport.onData((data: Uint8Array) => {
@@ -33,7 +34,7 @@ export class RPCMediator {
         try {
           rpcMessage = rpc_pb.RPCMessage.decode(data);
         } catch (e) {
-          console.error("failed to parse message from transport: ", e);
+          this.emit("error", e);
           return;
         }
         switch (rpcMessage.msgType) {
@@ -64,7 +65,7 @@ export class RPCMediator {
           }
         }
       } catch (e) {
-        console.error(e);
+        this.emit(e);
       }
     });
   }
@@ -80,7 +81,7 @@ export class RPCMediator {
       try {
         request = requestDecoder(requestPackage.requestBuffer);
       } catch (e) {
-        console.error("error parsing argument in handler: " + name, e);
+        this.emit("error", e);
         this.sendBackError(requestPackage.trackingId, "line error parsing handler argument");
         return;
       }
@@ -89,7 +90,7 @@ export class RPCMediator {
       try {
         resp = await handler(request);
       } catch (e) {
-        console.error("error in handler: " + name, e);
+        this.emit("error", e);
         this.sendBackError(requestPackage.trackingId, "internal error in handler");
         return;
       }
@@ -104,7 +105,7 @@ export class RPCMediator {
           }).finish()
         );
       } catch (e) {
-        console.error("error serializing response in handler: " + name, e);
+        this.emit("error", e);
         this.sendBackError(requestPackage.trackingId, "error serializing response");
       }
     };

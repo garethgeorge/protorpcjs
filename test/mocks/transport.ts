@@ -1,13 +1,13 @@
 import { RPCMessageTransport } from "../../src/transport";
-import * as EventEmitter from "event-emitter";
+import * as EventEmitter from "eventemitter3";
 
 export default class MockTransport implements RPCMessageTransport {
   private closed: boolean;
   private receiver: MockTransport;
-  private eventEmitter: EventEmitter.Emitter;
+  private eventEmitter: EventEmitter;
 
   private constructor() {
-    this.eventEmitter = EventEmitter();
+    this.eventEmitter = new EventEmitter();
     this.receiver = null;
     this.closed = false;
   }
