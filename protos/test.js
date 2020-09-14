@@ -451,4 +451,191 @@ $root.TestResponse = (function() {
     return TestResponse;
 })();
 
+$root.TestEvent = (function() {
+
+    /**
+     * Properties of a TestEvent.
+     * @exports ITestEvent
+     * @interface ITestEvent
+     * @property {string|null} [eventData] TestEvent eventData
+     */
+
+    /**
+     * Constructs a new TestEvent.
+     * @exports TestEvent
+     * @classdesc Represents a TestEvent.
+     * @implements ITestEvent
+     * @constructor
+     * @param {ITestEvent=} [properties] Properties to set
+     */
+    function TestEvent(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * TestEvent eventData.
+     * @member {string} eventData
+     * @memberof TestEvent
+     * @instance
+     */
+    TestEvent.prototype.eventData = "";
+
+    /**
+     * Creates a new TestEvent instance using the specified properties.
+     * @function create
+     * @memberof TestEvent
+     * @static
+     * @param {ITestEvent=} [properties] Properties to set
+     * @returns {TestEvent} TestEvent instance
+     */
+    TestEvent.create = function create(properties) {
+        return new TestEvent(properties);
+    };
+
+    /**
+     * Encodes the specified TestEvent message. Does not implicitly {@link TestEvent.verify|verify} messages.
+     * @function encode
+     * @memberof TestEvent
+     * @static
+     * @param {ITestEvent} message TestEvent message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    TestEvent.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.eventData != null && Object.hasOwnProperty.call(message, "eventData"))
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.eventData);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified TestEvent message, length delimited. Does not implicitly {@link TestEvent.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof TestEvent
+     * @static
+     * @param {ITestEvent} message TestEvent message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    TestEvent.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a TestEvent message from the specified reader or buffer.
+     * @function decode
+     * @memberof TestEvent
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {TestEvent} TestEvent
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    TestEvent.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.TestEvent();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.eventData = reader.string();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a TestEvent message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof TestEvent
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {TestEvent} TestEvent
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    TestEvent.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a TestEvent message.
+     * @function verify
+     * @memberof TestEvent
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    TestEvent.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.eventData != null && message.hasOwnProperty("eventData"))
+            if (!$util.isString(message.eventData))
+                return "eventData: string expected";
+        return null;
+    };
+
+    /**
+     * Creates a TestEvent message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof TestEvent
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {TestEvent} TestEvent
+     */
+    TestEvent.fromObject = function fromObject(object) {
+        if (object instanceof $root.TestEvent)
+            return object;
+        var message = new $root.TestEvent();
+        if (object.eventData != null)
+            message.eventData = String(object.eventData);
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a TestEvent message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof TestEvent
+     * @static
+     * @param {TestEvent} message TestEvent
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    TestEvent.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults)
+            object.eventData = "";
+        if (message.eventData != null && message.hasOwnProperty("eventData"))
+            object.eventData = message.eventData;
+        return object;
+    };
+
+    /**
+     * Converts this TestEvent to JSON.
+     * @function toJSON
+     * @memberof TestEvent
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    TestEvent.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return TestEvent;
+})();
+
 module.exports = $root;

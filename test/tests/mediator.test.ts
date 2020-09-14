@@ -10,11 +10,28 @@ describe("rpc mediator", () => {
   let a, b;
   beforeEach(() => {
     [a, b] = MockTransport.makePair();
-  })
+  });
 
   afterEach(() => {
     a.close();
     b.close();
+  });
+
+  it("should be able to send and receive an event", (callback) => {
+    const clientMediator = new RPCMediator(a);
+    const serverMediator = new RPCMediator(b);
+
+    clientMediator.sendEvent(
+      "hello_world",
+      test_pb.TestEvent.encode({
+        eventData: "hello world",
+      }).finish()
+    );
+    
+    serverMediator.onEvent("hello_world", test_pb.TestEvent.decode, (message) => {
+      e(message.eventData).toBe("hello world");
+      callback();
+    });
   });
 
   it("should be able to make a simple unary rpc request", async () => {
@@ -38,7 +55,7 @@ describe("rpc mediator", () => {
     });
   });
 
-  it("should get an error when server throws one", async() => {
+  it("should get an error when server throws one", async () => {
     const clientMediator = new RPCMediator(a);
     const serverMediator = new RPCMediator(b);
 
@@ -52,9 +69,11 @@ describe("rpc mediator", () => {
     );
 
     const clientService = new test_pb.TestService(clientMediator.makeRpcClientImpl());
-    await e(clientService.testRpc({
-      reqText: "hello world",
-    })).rejects.toThrowError();
+    await e(
+      clientService.testRpc({
+        reqText: "hello world",
+      })
+    ).rejects.toThrowError();
   });
 
   it("should get an error when the request is corrupt", (callback) => {
@@ -73,11 +92,15 @@ describe("rpc mediator", () => {
     );
 
     const clientService = new test_pb.TestService(clientMediator.makeRpcClientImpl());
-    const resp = clientMediator.makeUnaryRequest("testRpc", new Uint8Array(1), (error, response) => {
-      e(error).toBeInstanceOf(Error);
-      e(response).toBeNull();
+    const resp = clientMediator.makeUnaryRequest(
+      "testRpc",
+      new Uint8Array(1),
+      (error, response) => {
+        e(error).toBeInstanceOf(Error);
+        e(response).toBeNull();
 
-      callback();
-    });
+        callback();
+      }
+    );
   });
 });

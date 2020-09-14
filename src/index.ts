@@ -62,10 +62,39 @@ export class RPCMediator extends EventEmitter {
             }
             delete this.callbacks[rpcMessage.response.trackingId];
             callback(new rpc_pb.Response(rpcMessage.response));
+            break;
+          }
+          case "event": {
+            this.emit("event-" + rpcMessage.event.name, rpcMessage.event.buffer);
           }
         }
       } catch (e) {
         this.emit(e);
+      }
+    });
+  }
+
+  public sendEvent<EventT>(name: string, buffer: Uint8Array) {
+    this.transport.send(
+      rpc_pb.RPCMessage.encode({
+        event: {
+          name,
+          buffer,
+        },
+      }).finish()
+    );
+  }
+
+  public onEvent<EventT>(
+    name: string,
+    eventDecoder: (data: Uint8Array) => EventT,
+    handler: (event: EventT) => any
+  ) {
+    this.on("event-" + name, (data: Uint8Array) => {
+      try {
+        handler(eventDecoder(data));
+      } catch (e) {
+        this.emit("error", e);
       }
     });
   }
@@ -179,14 +208,4 @@ export class RPCMediator extends EventEmitter {
       }).finish()
     );
   }
-}
-
-export const makeClientRpcImpl = (transport: RPCMessageTransport) => {
-  transport.onData((data) => {});
-};
-
-class RpcClient {
-  constructor(socket) {}
-
-  getRpcImpl() {}
 }

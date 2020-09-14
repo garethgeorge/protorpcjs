@@ -11,3 +11,7 @@ message TestRequest {
 message TestResponse {
   string resp_text = 1;
 }
+
+message TestEvent {
+  string event_data = 1;
+}

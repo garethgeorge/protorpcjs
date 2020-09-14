@@ -4,6 +4,7 @@ message RPCMessage {
   oneof msg_type {
     Request request = 2;
     Response response = 3;
+    Event event = 4;
   }
 }
 
@@ -24,4 +25,9 @@ message Response {
     string error_message = 3;
     Empty empty = 4;
   }
+}
+
+message Event {
+  string name = 1;
+  bytes buffer = 2;
 }
