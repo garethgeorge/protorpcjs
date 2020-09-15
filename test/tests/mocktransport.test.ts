@@ -3,8 +3,8 @@ import { Method } from "protobufjs";
 
 import MockTransport from "../mocks/transport";
 // import {RPCService} from "../../src";
-import * as test_pb from "../../protos/test";
-import * as rpc_pb from "../../protos/rpc";
+import * as test_pb from "../../src/protos/test";
+import * as rpc_pb from "../../src/protos/rpc";
 
 describe("mocktransport", () => {
   it("should be able to make a simple end to end request", async () => {

@@ -1,11 +1,13 @@
 {
   "name": "protorpcjs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "prepublish": "tsc",
   "scripts": {
-    "test": "mocha test"
+    "test": "npm build && mocha test",
+    "build": "gulp && tsc"
   },
   "author": "garethgeorge",
   "license": "ISC",
@@ -15,7 +17,7 @@
     "protobufjs": "^6.10.1",
     "source-map-support": "^0.5.19"
   },
-  "type": "module",
+  "type": "commonjs",
   "devDependencies": {
     "@types/expect": "^24.3.0",
     "@types/google-protobuf": "^3.7.3",

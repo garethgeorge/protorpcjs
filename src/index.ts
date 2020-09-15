@@ -1,8 +1,8 @@
 import { Method, Writer } from "protobufjs/light";
 import { transform } from "typescript";
 import { RPCMessageTransport } from "./transport";
-import * as rpc_pb from "../protos/rpc";
-import * as EventEmitter from "eventemitter3";
+import * as rpc_pb from "./protos/rpc";
+import {EventEmitter} from "eventemitter3";
 
 export class RPCMediator extends EventEmitter {
   private nextTrackingId: number;

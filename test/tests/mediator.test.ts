@@ -3,8 +3,8 @@ import { Method } from "protobufjs";
 
 import MockTransport from "../mocks/transport";
 import { RPCMediator } from "../../src";
-import * as test_pb from "../../protos/test";
-import { RPCMessage } from "../../protos/rpc";
+import * as test_pb from "../../src/protos/test";
+import { RPCMessage } from "../../src/protos/rpc";
 
 describe("rpc mediator", () => {
   let a, b;
