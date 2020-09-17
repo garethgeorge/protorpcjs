@@ -3,6 +3,10 @@ import { transform } from "typescript";
 import { RPCMessageTransport } from "./transport";
 import * as rpc_pb from "./protos/rpc";
 import {EventEmitter} from "eventemitter3";
+import Debug from "debug";
+
+const debug = Debug("protorpcjs");
+const debugMethod = Debug("protorpcjs:method");
 
 export class RPCMediator extends EventEmitter {
   private nextTrackingId: number;
@@ -21,7 +25,12 @@ export class RPCMediator extends EventEmitter {
     this.handlers = {};
     this.callbacks = {};
 
+    this.on("error", (error) => {
+      debug(error);
+    });
+
     this.transport.onClose(() => {
+      debug("transport closed, sending timeout to all pending callbacks");
       for (const callback of Object.values(this.callbacks)) {
         callback(null);
       }
@@ -37,6 +46,7 @@ export class RPCMediator extends EventEmitter {
           this.emit("error", e);
           return;
         }
+        debug("received message on transport: %o", rpcMessage);
         switch (rpcMessage.msgType) {
           case "request": {
             const handler = this.handlers[rpcMessage.request.rpcName];
@@ -105,6 +115,7 @@ export class RPCMediator extends EventEmitter {
     responseEncoder: (response: RespT) => Writer,
     handler: (request: ReqT) => Promise<RespT>
   ) {
+    debug("adding handler for method: %o", name);
     this.handlers[name] = async (requestPackage: rpc_pb.Request) => {
       let request: ReqT;
       try {
@@ -114,6 +125,8 @@ export class RPCMediator extends EventEmitter {
         this.sendBackError(requestPackage.trackingId, "line error parsing handler argument");
         return;
       }
+
+      debugMethod("rpc method invocation: %o args: %o", name, request);
 
       let resp: RespT;
       try {
