@@ -1,13 +1,13 @@
 {
   "name": "protorpcjs",
-  "version": "1.0.3",
+  "version": "1.1.1",
   "description": "",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "prepublish": "tsc",
   "scripts": {
     "test": "npm build && mocha test",
-    "build": "gulp && tsc"
+    "build": "rm -rf dist && gulp && tsc"
   },
   "author": "garethgeorge",
   "license": "ISC",
