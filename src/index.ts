@@ -113,6 +113,7 @@ export class RPCMediator extends EventEmitter {
     name: string,
     requestDecoder: (data: Uint8Array) => ReqT,
     responseEncoder: (response: RespT) => Writer,
+    responseVerifier: (message: { [k: string]: any }) => string | null,
     handler: (request: ReqT) => Promise<RespT>
   ) {
     debug("adding handler for method: %o", name);
@@ -135,6 +136,11 @@ export class RPCMediator extends EventEmitter {
         this.emit("error", e);
         this.sendBackError(requestPackage.trackingId, "internal error in handler");
         return;
+      }
+
+      const verificationMsg = responseVerifier(resp);
+      if (verificationMsg !== null) {
+        throw new Error("bad response: " + verificationMsg);
       }
 
       try {

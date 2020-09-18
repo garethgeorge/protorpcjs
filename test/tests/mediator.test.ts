@@ -42,6 +42,7 @@ describe("rpc mediator", () => {
       "testRpc",
       test_pb.TestRequest.decode,
       test_pb.TestResponse.encode,
+      test_pb.TestRequest.verify,
       async (request) => {
         return new test_pb.TestResponse({
           respText: request.reqText + "!!!",
@@ -63,6 +64,7 @@ describe("rpc mediator", () => {
       "testRpc",
       test_pb.TestRequest.decode,
       test_pb.TestResponse.encode,
+      test_pb.TestRequest.verify,
       async (request) => {
         throw new Error("woops");
       }
@@ -84,6 +86,7 @@ describe("rpc mediator", () => {
       "testRpc",
       test_pb.TestRequest.decode,
       test_pb.TestResponse.encode,
+      test_pb.TestResponse.verify,
       async (request) => {
         return new test_pb.TestResponse({
           respText: request.reqText + "!!!",
