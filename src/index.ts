@@ -177,7 +177,8 @@ export class RPCMediator extends EventEmitter {
   public makeUnaryRequest(
     method: string,
     requestData: Uint8Array,
-    callback: (error: Error, response?: Uint8Array) => void
+    callback: (error: Error, response?: Uint8Array) => void,
+    timeoutMs: number = 60000
   ) {
     const trackingId = this.nextTrackingId++;
     this.transport.send(
@@ -189,8 +190,18 @@ export class RPCMediator extends EventEmitter {
         },
       }).finish()
     );
+    
+    // setup a timeout for the request, this defaults to a minute
+    const timeout = setTimeout(() => {
+      const callback = this.callbacks[trackingId];
+      if (!callback)
+        return
+      delete this.callbacks[trackingId];
+      callback(null);
+    }, timeoutMs);
 
     this.callbacks[trackingId] = (response: rpc_pb.Response | null) => {
+      clearTimeout(timeout);
       if (response === null) {
         return callback(new Error("request timedout"), null);
       }
@@ -201,7 +212,7 @@ export class RPCMediator extends EventEmitter {
           break;
         }
         case "errorMessage": {
-          callback(new Error(response.errorMessage), null);
+          callback(new Error("RPC returned error: " + response.errorMessage), null);
           break;
         }
         case "responseBuffer": {
