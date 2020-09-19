@@ -212,7 +212,7 @@ export class RPCMediator extends EventEmitter {
           break;
         }
         case "errorMessage": {
-          callback(new Error("RPC returned error: " + response.errorMessage), null);
+          callback(new Error("RPC call for method " + method + " returned error: " + response.errorMessage), null);
           break;
         }
         case "responseBuffer": {

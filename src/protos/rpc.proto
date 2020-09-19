@@ -11,14 +11,14 @@ message RPCMessage {
 message Request {
   string rpc_name = 1;
   bytes request_buffer = 2;
-  uint64 tracking_id = 3;
+  int32 tracking_id = 3;
 }
 
 message Response {
   message Empty {
   };
 
-  uint64 tracking_id = 1;
+  int32 tracking_id = 1;
 
   oneof returned {
     bytes response_buffer = 2;

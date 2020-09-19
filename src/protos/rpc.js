@@ -336,7 +336,7 @@ $root.Request = (function() {
      * @memberof Request
      * @instance
      */
-    Request.prototype.trackingId = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+    Request.prototype.trackingId = 0;
 
     /**
      * Creates a new Request instance using the specified properties.
@@ -367,7 +367,7 @@ $root.Request = (function() {
         if (message.requestBuffer != null && Object.hasOwnProperty.call(message, "requestBuffer"))
             writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.requestBuffer);
         if (message.trackingId != null && Object.hasOwnProperty.call(message, "trackingId"))
-            writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.trackingId);
+            writer.uint32(/* id 3, wireType 0 =*/24).int32(message.trackingId);
         return writer;
     };
 
@@ -409,7 +409,7 @@ $root.Request = (function() {
                 message.requestBuffer = reader.bytes();
                 break;
             case 3:
-                message.trackingId = reader.uint64();
+                message.trackingId = reader.int32();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -453,8 +453,8 @@ $root.Request = (function() {
             if (!(message.requestBuffer && typeof message.requestBuffer.length === "number" || $util.isString(message.requestBuffer)))
                 return "requestBuffer: buffer expected";
         if (message.trackingId != null && message.hasOwnProperty("trackingId"))
-            if (!$util.isInteger(message.trackingId) && !(message.trackingId && $util.isInteger(message.trackingId.low) && $util.isInteger(message.trackingId.high)))
-                return "trackingId: integer|Long expected";
+            if (!$util.isInteger(message.trackingId))
+                return "trackingId: integer expected";
         return null;
     };
 
@@ -478,14 +478,7 @@ $root.Request = (function() {
             else if (object.requestBuffer.length)
                 message.requestBuffer = object.requestBuffer;
         if (object.trackingId != null)
-            if ($util.Long)
-                (message.trackingId = $util.Long.fromValue(object.trackingId)).unsigned = true;
-            else if (typeof object.trackingId === "string")
-                message.trackingId = parseInt(object.trackingId, 10);
-            else if (typeof object.trackingId === "number")
-                message.trackingId = object.trackingId;
-            else if (typeof object.trackingId === "object")
-                message.trackingId = new $util.LongBits(object.trackingId.low >>> 0, object.trackingId.high >>> 0).toNumber(true);
+            message.trackingId = object.trackingId | 0;
         return message;
     };
 
@@ -511,21 +504,14 @@ $root.Request = (function() {
                 if (options.bytes !== Array)
                     object.requestBuffer = $util.newBuffer(object.requestBuffer);
             }
-            if ($util.Long) {
-                var long = new $util.Long(0, 0, true);
-                object.trackingId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
-            } else
-                object.trackingId = options.longs === String ? "0" : 0;
+            object.trackingId = 0;
         }
         if (message.rpcName != null && message.hasOwnProperty("rpcName"))
             object.rpcName = message.rpcName;
         if (message.requestBuffer != null && message.hasOwnProperty("requestBuffer"))
             object.requestBuffer = options.bytes === String ? $util.base64.encode(message.requestBuffer, 0, message.requestBuffer.length) : options.bytes === Array ? Array.prototype.slice.call(message.requestBuffer) : message.requestBuffer;
         if (message.trackingId != null && message.hasOwnProperty("trackingId"))
-            if (typeof message.trackingId === "number")
-                object.trackingId = options.longs === String ? String(message.trackingId) : message.trackingId;
-            else
-                object.trackingId = options.longs === String ? $util.Long.prototype.toString.call(message.trackingId) : options.longs === Number ? new $util.LongBits(message.trackingId.low >>> 0, message.trackingId.high >>> 0).toNumber(true) : message.trackingId;
+            object.trackingId = message.trackingId;
         return object;
     };
 
@@ -576,7 +562,7 @@ $root.Response = (function() {
      * @memberof Response
      * @instance
      */
-    Response.prototype.trackingId = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+    Response.prototype.trackingId = 0;
 
     /**
      * Response responseBuffer.
@@ -641,7 +627,7 @@ $root.Response = (function() {
         if (!writer)
             writer = $Writer.create();
         if (message.trackingId != null && Object.hasOwnProperty.call(message, "trackingId"))
-            writer.uint32(/* id 1, wireType 0 =*/8).uint64(message.trackingId);
+            writer.uint32(/* id 1, wireType 0 =*/8).int32(message.trackingId);
         if (message.responseBuffer != null && Object.hasOwnProperty.call(message, "responseBuffer"))
             writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.responseBuffer);
         if (message.errorMessage != null && Object.hasOwnProperty.call(message, "errorMessage"))
@@ -683,7 +669,7 @@ $root.Response = (function() {
             var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
-                message.trackingId = reader.uint64();
+                message.trackingId = reader.int32();
                 break;
             case 2:
                 message.responseBuffer = reader.bytes();
@@ -731,8 +717,8 @@ $root.Response = (function() {
             return "object expected";
         var properties = {};
         if (message.trackingId != null && message.hasOwnProperty("trackingId"))
-            if (!$util.isInteger(message.trackingId) && !(message.trackingId && $util.isInteger(message.trackingId.low) && $util.isInteger(message.trackingId.high)))
-                return "trackingId: integer|Long expected";
+            if (!$util.isInteger(message.trackingId))
+                return "trackingId: integer expected";
         if (message.responseBuffer != null && message.hasOwnProperty("responseBuffer")) {
             properties.returned = 1;
             if (!(message.responseBuffer && typeof message.responseBuffer.length === "number" || $util.isString(message.responseBuffer)))
@@ -771,14 +757,7 @@ $root.Response = (function() {
             return object;
         var message = new $root.Response();
         if (object.trackingId != null)
-            if ($util.Long)
-                (message.trackingId = $util.Long.fromValue(object.trackingId)).unsigned = true;
-            else if (typeof object.trackingId === "string")
-                message.trackingId = parseInt(object.trackingId, 10);
-            else if (typeof object.trackingId === "number")
-                message.trackingId = object.trackingId;
-            else if (typeof object.trackingId === "object")
-                message.trackingId = new $util.LongBits(object.trackingId.low >>> 0, object.trackingId.high >>> 0).toNumber(true);
+            message.trackingId = object.trackingId | 0;
         if (object.responseBuffer != null)
             if (typeof object.responseBuffer === "string")
                 $util.base64.decode(object.responseBuffer, message.responseBuffer = $util.newBuffer($util.base64.length(object.responseBuffer)), 0);
@@ -808,16 +787,9 @@ $root.Response = (function() {
             options = {};
         var object = {};
         if (options.defaults)
-            if ($util.Long) {
-                var long = new $util.Long(0, 0, true);
-                object.trackingId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
-            } else
-                object.trackingId = options.longs === String ? "0" : 0;
+            object.trackingId = 0;
         if (message.trackingId != null && message.hasOwnProperty("trackingId"))
-            if (typeof message.trackingId === "number")
-                object.trackingId = options.longs === String ? String(message.trackingId) : message.trackingId;
-            else
-                object.trackingId = options.longs === String ? $util.Long.prototype.toString.call(message.trackingId) : options.longs === Number ? new $util.LongBits(message.trackingId.low >>> 0, message.trackingId.high >>> 0).toNumber(true) : message.trackingId;
+            object.trackingId = message.trackingId;
         if (message.responseBuffer != null && message.hasOwnProperty("responseBuffer")) {
             object.responseBuffer = options.bytes === String ? $util.base64.encode(message.responseBuffer, 0, message.responseBuffer.length) : options.bytes === Array ? Array.prototype.slice.call(message.responseBuffer) : message.responseBuffer;
             if (options.oneofs)
